@@ -55,30 +55,30 @@ void setup()
 
 void loop()
 {
-  //Send message
-  Serial.println("Sending to nodes");
+  //Send message if serial available
+  while(Serial.available())
+  {
+    String cmd = Serial.readString();
+    short messageLength = cmd.length() + 1;
+    char radioMessage[messageLength];
+    cmd.toCharArray(radioMessage, messageLength);
 
-  char radioPacket[20] = "Hello World #      ";
-  itoa(packetNum++, radioPacket + 13, 10);
-  Serial.print("Sending");
-  Serial.println(radioPacket);
-  radioPacket[19] = 0;
+    Serial.print("Sending command: ");
+    Serial.println(cmd);
+    radioMessage[messageLength - 1] = 0;
+    delay(10);
+    rf95.send((uint8_t *)radioMessage, messageLength);
 
-  Serial.println("Sending...");
-  delay(10);
-  rf95.send((uint8_t *)radioPacket, 20);
+    Serial.println("Waiting for packet to complete...");
+    delay(10);
+    rf95.waitPacketSent();
+  }
 
-  Serial.println("Waiting for packet to complete...");
-  delay(10);
-  rf95.waitPacketSent();
-
-  //Wait response
+  //Listen for response
   uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
-  Serial.println("Waiting for reply");
-  delay(10);
-  if(rf95.waitAvailableTimeout(1000))
+  if(rf95.waitAvailableTimeout(2000))
   {
     //get message
     if(rf95.recv(buf, &len))
@@ -93,9 +93,5 @@ void loop()
       Serial.println("Receive failed");
     }
   }
-  else
-  {
-    Serial.println("No reply, is there a listener around?");
-  }
-  delay(1000);
+  delay(10);
 }
