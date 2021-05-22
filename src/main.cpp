@@ -52,10 +52,13 @@ void loop()
     String serialRead = Serial.readString();
     if(!serialRead.equals(START))
     {
-      String cmd = NAME;
+      String zoneName = serialRead.substring(0, 4);
+      String zoneId = serialRead.substring(4, 8);
+      String cmd = zoneName;
+      cmd += zoneId;
       cmd += ID;
-      cmd += serialRead;
-      short messageLength = cmd.length();
+      cmd += serialRead.substring(8);
+      short messageLength = cmd.length() + 1; //must be +1 for eof symbol
       char radioMessage[messageLength + 1];
       cmd.toCharArray(radioMessage, messageLength);
 
@@ -92,15 +95,20 @@ void loop()
         String msg = (char*)buf;
         if(msg.substring(0, 4).equals(NAME))
         {
-          msg = msg.substring(4);
-
+          msg = msg.substring(4); //Remove name from message
           //Decrypt here
           //...
-          Serial.print("Zone> ");
-          Serial.println(msg);
-          Serial.print("rs");
-          Serial.println(rf95.lastRssi(), DEC);
+          if(msg.substring(0, 8).equals(ID))
+          {
+            msg = msg.substring(8); //Remove receiver ID from packet
+
+            Serial.print("ZN>");
+            Serial.print(msg);
+            Serial.print("|rs");
+            Serial.println(rf95.lastRssi(), DEC);
+          }
         }
+        msg = "";
       }
       else
       {
