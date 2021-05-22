@@ -74,7 +74,7 @@ void loop()
     else
     {
       isStarted = true;
-      Serial.println("GW> Gateway srated");
+      Serial.println("GW> Gateway started");
     }
   }
 
@@ -85,24 +85,27 @@ void loop()
     uint8_t len = sizeof(buf);
 
     //Listen messages
-    if(rf95.recv(buf, &len))
+    if(rf95.available())
     {
-      String msg = (char*)buf;
-      if(msg.substring(0, 4).equals(NAME))
+      if(rf95.recv(buf, &len))
       {
-        msg = msg.substring(4);
+        String msg = (char*)buf;
+        if(msg.substring(0, 4).equals(NAME))
+        {
+          msg = msg.substring(4);
 
-        //Decrypt here
-        //...
-        Serial.print("Zone> ");
-        Serial.println(msg);
-        Serial.print("rs");
-        Serial.println(rf95.lastRssi(), DEC);
+          //Decrypt here
+          //...
+          Serial.print("Zone> ");
+          Serial.println(msg);
+          Serial.print("rs");
+          Serial.println(rf95.lastRssi(), DEC);
+        }
       }
-    }
-    else
-    {
-      Serial.println("GW> ERROR Read buffer");
+      else
+      {
+        Serial.println("GW> ERROR Read buffer");
+      }
     }
     delay(10);
   }
