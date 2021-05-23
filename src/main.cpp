@@ -73,10 +73,7 @@ void loop()
       radioMessage[messageLength] = 0;
       delay(10);
 
-      //Encrypt here
-      //...
       encDriver.send((uint8_t *)radioMessage, messageLength);
-
       delay(10);
       encDriver.waitPacketSent();
     }
