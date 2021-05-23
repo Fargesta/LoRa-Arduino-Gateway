@@ -58,10 +58,10 @@ void loop()
     String serialRead = Serial.readString();
     if(!serialRead.equals(START))
     {
-      int zoneNetworkId = serialRead.substring(0, 2).toInt();
-      encDriver.setHeaderTo((uint8_t)zoneNetworkId);
+      uint8_t zoneNetworkId = serialRead.substring(0, 2).toInt();
+      encDriver.setHeaderTo(zoneNetworkId);
       serialRead = serialRead.substring(2);
-      String zonePassword = serialRead.substring(4, 8);
+      String zonePassword = serialRead.substring(0, 8);
       String cmd = zonePassword;
       cmd += serialRead.substring(8);
       short messageLength = cmd.length() + 1; //must be +1 for eof symbol
