@@ -1,10 +1,14 @@
 #include <Arduino.h>
 #include <SPI.h>
 #include <RH_RF95.h>
+#include <RHEncryptedDriver.h>
+#include <Speck.h>
 #include <main.h>
 
-// new RF_95
+//Init driver and encrytion
 RH_RF95 rf95;
+Speck msgCipher;
+RHEncryptedDriver encDriver(rf95, msgCipher);
 
 //Start flag
 bool isStarted = false;
@@ -42,6 +46,8 @@ void setup()
   Serial.println(RF95_FREQ);
 
   rf95.setTxPower(23, false);
+  msgCipher.setKey(encryptKey, sizeof(encryptKey));
+  encDriver.setThisAddress(NETWORK_ID);
 }
 
 void loop()
@@ -52,11 +58,11 @@ void loop()
     String serialRead = Serial.readString();
     if(!serialRead.equals(START))
     {
-      String zoneName = serialRead.substring(0, 4);
-      String zoneId = serialRead.substring(4, 8);
-      String cmd = zoneName;
-      cmd += zoneId;
-      cmd += ID;
+      int zoneNetworkId = serialRead.substring(0, 2).toInt();
+      encDriver.setHeaderTo((uint8_t)zoneNetworkId);
+      serialRead = serialRead.substring(2);
+      String zonePassword = serialRead.substring(4, 8);
+      String cmd = zonePassword;
       cmd += serialRead.substring(8);
       short messageLength = cmd.length() + 1; //must be +1 for eof symbol
       char radioMessage[messageLength + 1];
@@ -69,10 +75,10 @@ void loop()
 
       //Encrypt here
       //...
-      rf95.send((uint8_t *)radioMessage, messageLength);
+      encDriver.send((uint8_t *)radioMessage, messageLength);
 
       delay(10);
-      rf95.waitPacketSent();
+      encDriver.waitPacketSent();
     }
     else
     {
@@ -88,25 +94,19 @@ void loop()
     uint8_t len = sizeof(buf);
 
     //Listen messages
-    if(rf95.available())
+    if(encDriver.available())
     {
-      if(rf95.recv(buf, &len))
+      if(encDriver.recv(buf, &len))
       {
         String msg = (char*)buf;
-        if(msg.substring(0, 4).equals(NAME))
+        if(msg.substring(0, 8).equals(PASSWORD))
         {
-          msg = msg.substring(4); //Remove name from message
-          //Decrypt here
-          //...
-          if(msg.substring(0, 8).equals(ID))
-          {
-            msg = msg.substring(8); //Remove receiver ID from packet
+          msg = msg.substring(8); //Remove receiver ID from packet
 
-            Serial.print("ZN>");
-            Serial.print(msg);
-            Serial.print("|rs");
-            Serial.println(rf95.lastRssi(), DEC);
-          }
+          Serial.print("ZN>");
+          Serial.print(msg);
+          Serial.print("|rs");
+          Serial.println(encDriver.lastRssi(), DEC);
         }
         msg = "";
       }

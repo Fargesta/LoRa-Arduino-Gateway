@@ -1,6 +1,6 @@
 //Node Keys
-#define NAME "gw01" //4 symbols
-#define ID "F!;Gx[+G" //8 symbols
+#define NETWORK_ID 13       //uint8_t
+#define PASSWORD "F!;Gx[+G" //8 symbols
 
 //Serial commands
 #define START "st"
@@ -17,3 +17,6 @@
 //#define RF95_FREQ 869.525
 
 #define RFM95_RST 9
+
+//encryption key
+unsigned char encryptKey[16] = {'E', 'B', 3, 'v', 'J', 'k', 'Y', '#', 9, 5, 'y', 's', 'W', '!', '9', 'J'};
