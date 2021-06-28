@@ -46,6 +46,9 @@ void setup()
   Serial.println(RF95_FREQ);
 
   rf95.setTxPower(23, false);
+  rf95.setSignalBandwidth(62500);
+  rf95.setSpreadingFactor(10);
+  encDriver.setCADTimeout(500);
   msgCipher.setKey(encryptKey, sizeof(encryptKey));
   encDriver.setThisAddress(NETWORK_ID);
 }
@@ -73,6 +76,7 @@ void loop()
       radioMessage[messageLength] = 0;
       delay(10);
 
+      encDriver.waitCAD();
       encDriver.send((uint8_t *)radioMessage, messageLength);
       delay(10);
       encDriver.waitPacketSent();
